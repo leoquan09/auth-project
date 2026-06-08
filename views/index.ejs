@@ -3,9 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Log In</title>
 </head>
 <body>
-    <h1>Hello world!!</h1>
+    <% if (locals.user) {%>
+        <h1>Welcome back <%= user.username %>, your password is <%= user.password %></h1>
+        <a href="/log-out">log out</a>
+    <% } else { %>
+    <h1>please log in</h1>
+    <form action="/log-in" method="POST">
+        <label for="username">Username</label>
+        <input id="username" name="username" placeholder="username" type="text" />
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" />
+        <button type="submit">Log In</button>
+    </form>
+    <%}%>
 </body>
 </html>
