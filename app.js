@@ -1,5 +1,6 @@
 const path = require('node:path');
 const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
@@ -38,12 +39,14 @@ app.get('/log-out', (req, res) => {
 
 app.post('/sign-up', async (req, res, next) => {
     try {
-        await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [
-            req.body.username,
-            req.body.password,
-        ]);
+      const hashedPassword = await bcrypt.hash(req.body.password, 10);  
+      await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [
+          req.body.username,
+          hashedPassword,
+      ]);
         res.redirect('/');
     } catch(err) {
+      console.log(error);
         return next(err);
     };
 });
@@ -53,11 +56,12 @@ passport.use(
     try {
       const { rows } = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
       const user = rows[0];
+      const match = await bcrypt.compare(password, user.password);
 
       if (!user) {
         return done(null, false, { message: "Incorrect username" });
       }
-      if (user.password !== password) {
+      if (!match) {
         return done(null, false, { message: "Incorrect password" });
       }
       return done(null, user);
